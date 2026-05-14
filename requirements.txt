@@ -1,2 +1,2 @@
-ploty
+plotly
 pandas
