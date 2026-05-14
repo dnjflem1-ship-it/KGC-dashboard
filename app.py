@@ -1,4 +1,15 @@
-# 1. 데이터 연결 (사용자 직접 URL 입력을 통한 유연한 연결 지원)
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+from streamlit_gsheets import GSheetsConnection
+
+# 페이지 기본 설정
+st.set_page_config(
+    page_title="KGC 마케팅 실시간 대시보드",
+    page_icon="🔴",
+    layout="wide"
+)
+
 st.sidebar.header("⚙️ 데이터 연동 설정")
 sheet_url = st.sidebar.text_input(
     "구글 스프레드시트 URL 입력",
@@ -7,21 +18,22 @@ sheet_url = st.sidebar.text_input(
     help="분석하고자 하는 구글 시트의 전체 URL을 붙여넣으세요."
 )
 
+data_load_success = False
+df = pd.DataFrame()
+
 try:
     if sheet_url:
         conn = st.connection("gsheets", type=GSheetsConnection)
-        # 사용자가 입력한 URL에서 직접 데이터를 읽어오도록 수정 (캐시 10분)
+        # 10분마다 캐시 갱신 (ttl=600)
         df = conn.read(spreadsheet=sheet_url, ttl=600)
-        data_load_success = True
+        if not df.empty:
+            data_load_success = True
     else:
         st.warning("⚠️ 왼쪽 사이드바에 구글 시트 URL을 입력해야 대시보드가 활성화됩니다.")
-        data_load_success = False
 except Exception as e:
     st.error(f"⚠️ 데이터 연결 실패: {e}")
     st.info("💡 시트의 [공유] 설정이 '링크가 있는 모든 사용자(뷰어)'로 되어 있는지 확인해 주세요.")
-    data_load_success = False
 
-# 브랜드 정체성을 반영한 커스텀 스타일
 st.markdown("""
     <style>
     .main { background-color: #f8fafc; }
@@ -57,9 +69,8 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 if data_load_success:
-    # 시트 내 'Type' 컬럼이 'KPI'인 행들을 추출한다고 가정
+    # 1. KPI 지표 요약
     kpi_df = df[df['Type'] == 'KPI']
-    
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -77,11 +88,11 @@ if data_load_success:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # 2. 지역 및 연령 분포 차트
     left, right = st.columns(2)
     
     with left:
         st.markdown('<h3 class="section-title">📍 지역별 판매 현황</h3>', unsafe_allow_html=True)
-        # 'Type'이 'Region'인 데이터 시각화
         region_df = df[df['Type'] == 'Region']
         fig_sales = px.bar(region_df, x='Name', y='Value', 
                           color='Value', color_continuous_scale='Reds',
@@ -91,19 +102,18 @@ if data_load_success:
         
     with right:
         st.markdown('<h3 class="section-title">👥 고객 인구통계 비중</h3>', unsafe_allow_html=True)
-        # 'Type'이 'Age'인 데이터 시각화
         age_df = df[df['Type'] == 'Age']
         fig_age = px.pie(age_df, values='Value', names='Name',
                         hole=0.5, color_discrete_sequence=['#fbc02d', '#e2e8f0'])
         fig_age.update_layout(height=350, margin=dict(t=0, b=0, l=0, r=0))
         st.plotly_chart(fig_age, use_container_width=True)
 
+    # 3. 고객 VOC 섹션
     st.markdown('<h3 class="section-title">💬 실시간 고객 VOC 요약</h3>', unsafe_allow_html=True)
-    
     voc_df = df[df['Type'] == 'VOC'][['Content', 'Sentiment']]
     st.dataframe(voc_df, use_container_width=True, hide_index=True)
 
     st.info("💡 **팀장 가이드**: 구글 시트에서 수치를 변경한 후 앱을 새로고침(R)하면 대시보드에 즉시 반영됩니다.")
 
 else:
-    st.warning("구글 스프레드시트 연결 설정을 확인해주세요. 시트의 공유 권한이 '링크가 있는 모든 사용자'인지 확인이 필요합니다.")
+    st.warning("구글 스프레드시트 주소를 사이드바에 입력해 주세요.")
