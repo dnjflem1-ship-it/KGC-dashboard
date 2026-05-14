@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에브리타임 밸런스 마케팅 통찰 보고서</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;800&display=swap');
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 400px; }
+        .gradient-bg { background: linear-gradient(135deg, #c62828 0%, #ef5350 100%); }
+        .card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); transition: transform 0.2s; }
+        .card:hover { transform: translateY(-4px); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        <header class="gradient-bg text-white p-8 rounded-2xl mb-8 shadow-xl">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center">
+                <div>
+                    <p class="text-sm font-semibold opacity-90 mb-1">2026 MARCH WEEK 4</p>
+                    <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">에브리타임 밸런스 마케팅 통찰</h1>
+                </div>
+                <div class="mt-4 md:mt-0 bg-white/20 backdrop-blur-md px-4 py-2 rounded-lg border border-white/30">
+                    <span class="font-bold text-sm">To. Brand Manager (BM)</span>
+                </div>
+            </div>
+            <p class="mt-6 text-lg leading-relaxed max-w-3xl font-medium">
+                "리뉴얼 효과가 수도권 2030 세대를 중심으로 폭발하고 있습니다. 아웃도어 키워드의 성장을 기점으로 브랜드 확장의 골든타임을 잡아야 합니다."
+            </p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div class="card p-6 border-l-4 border-red-600">
+                <p class="text-gray-500 text-sm font-bold uppercase">수도권 판매 성장</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span class="text-4xl font-black text-red-600">+15%</span>
+                    <span class="text-gray-400 text-sm">vs 전주</span>
+                </div>
+                <p class="mt-2 text-sm text-gray-600 font-medium">CVS 채널 중심의 강력한 모멘텀</p>
+            </div>
+            <div class="card p-6 border-l-4 border-amber-500">
+                <p class="text-gray-500 text-sm font-bold uppercase">핵심 구매 연령층</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span class="text-4xl font-black text-amber-500">45%</span>
+                    <span class="text-gray-400 text-sm">2030 세대</span>
+                </div>
+                <p class="mt-2 text-sm text-gray-600 font-medium">사회초년생 타겟팅 성공적 안착</p>
+            </div>
+            <div class="card p-6 border-l-4 border-blue-600">
+                <p class="text-gray-500 text-sm font-bold uppercase">라이프스타일 키워드</p>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span class="text-4xl font-black text-blue-600">+30%</span>
+                    <span class="text-gray-400 text-sm">야외 활동</span>
+                </div>
+                <p class="mt-2 text-sm text-gray-600 font-medium">#등산 #테니스 연계 언급량 급증</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div class="card p-8">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-red-600 rounded"></span>
+                    지역별 판매 변동 (채널 양극화)
+                </h3>
+                <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                    수도권 편의점 채널은 리뉴얼 효과로 두 자릿수 성장을 기록했으나, 대형마트 중심의 지방 시장은 보합세를 보이며 채널별 최적화 전략이 요구됩니다.
+                </p>
+                <div class="chart-container">
+                    <canvas id="salesChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card p-8">
+                <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span class="w-2 h-6 bg-amber-500 rounded"></span>
+                    구매 고객 인구통계 비중
+                </h3>
+                <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                    전체 구매자의 절반에 육박하는 비중을 2030 사회초년생이 차지하고 있습니다. 쓴맛 완화와 감각적 패키지가 젊은 층의 진입 장벽을 낮췄습니다.
+                </p>
+                <div class="chart-container">
+                    <canvas id="ageChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-8 mb-8">
+            <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <span class="w-2 h-6 bg-blue-600 rounded"></span>
+                고객 리뷰 감성 및 키워드 (500건 분석)
+            </h3>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                <div class="lg:col-span-2">
+                    <p class="text-gray-600 mb-6 text-sm leading-relaxed">
+                        선물 가치와 맛 개선에 대한 긍정 피드백이 압도적이나, 가격 인상에 대한 민감도와 '박스 개봉의 뻑뻑함'이라는 물리적 UX 결함이 리스크로 관측됩니다.
+                    </p>
+                    <div class="chart-container" style="height: 300px;">
+                        <canvas id="vocChart"></canvas>
+                    </div>
+                </div>
+                <div class="space-y-4">
+                    <div class="bg-blue-50 p-5 rounded-xl border border-blue-100 relative overflow-hidden">
+                        <div class="absolute right-[-10px] top-[-10px] opacity-10">
+                            <svg class="w-20 h-20" fill="currentColor" viewBox="0 0 20 20"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path></svg>
+                        </div>
+                        <span class="text-blue-700 font-bold text-xs uppercase block mb-1">Rising Trend</span>
+                        <p class="text-2xl font-black text-blue-900">#등산 #테니스</p>
+                        <p class="text-sm text-blue-700 mt-1 font-semibold">언급 비중 30% 증가</p>
+                    </div>
+                    <div class="bg-red-50 p-5 rounded-xl border border-red-100">
+                        <span class="text-red-700 font-bold text-xs uppercase block mb-1">Risk Warning</span>
+                        <p class="text-xl font-bold text-red-900 leading-tight">패키지 개봉 UX 결함</p>
+                        <p class="text-sm text-red-700 mt-1">반복 구매 저해 요소 진단</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section class="mb-12">
+            <h2 class="text-2xl font-black mb-6 flex items-center gap-3">
+                <span class="bg-slate-800 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">!</span>
+                전략적 액션 아이템 (팀장 제언)
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-red-500">
+                    <h4 class="font-bold text-lg mb-2 text-red-700">1. O4O 타겟 프로모션</h4>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-500 mt-1">•</span>
+                            편의점 앱 연계 '아웃도어 에너지 팩' 프로모션 강화
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-red-500 mt-1">•</span>
+                            수도권 성장세를 지방 CVS 채널로 즉시 확산 유도
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-amber-500">
+                    <h4 class="font-bold text-lg mb-2 text-amber-700">2. 상품 UX 개선</h4>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">•</span>
+                            박스 개봉 구조(Easy-Open) 긴급 공정 점검 지시
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-amber-500 mt-1">•</span>
+                            액티비티 특화 소포장 SKU(5포입) 개발로 가격 저항 분산
+                        </li>
+                    </ul>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-md border-t-4 border-blue-500">
+                    <h4 class="font-bold text-lg mb-2 text-blue-700">3. 캠페인 컨셉 확장</h4>
+                    <ul class="text-sm text-gray-600 space-y-2">
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">•</span>
+                            SNS 캠페인 모델을 '오피스'에서 '애슬레저'로 전환
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-blue-500 mt-1">•</span>
+                            '에너지 부스터'로서의 인지 강화 캠페인 런칭
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer class="text-center text-gray-400 text-sm border-t pt-8 mb-12">
+            © 2026 KGC Brand Strategy Team. Internal Confidential.
+        </footer>
+    </div>
+
+    <script>
+        // Chart Initialization
+        window.onload = function() {
+            // Sales Chart
+            const salesCtx = document.getElementById('salesChart').getContext('2d');
+            new Chart(salesCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['수도권 (CVS 강세)', '지방 (대형마트 정체)'],
+                    datasets: [{
+                        label: '전주 대비 증감률 (%)',
+                        data: [15, -2],
+                        backgroundColor: ['#c62828', '#94a3b8'],
+                        borderRadius: 8,
+                        barThickness: 50
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            grid: { color: '#f1f5f9' },
+                            ticks: { callback: value => value + '%' }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+
+            // Age Demographic Chart
+            const ageCtx = document.getElementById('ageChart').getContext('2d');
+            new Chart(ageCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['2030 사회초년생', '기타 연령층'],
+                    datasets: [{
+                        data: [45, 55],
+                        backgroundColor: ['#fbc02d', '#f1f5f9'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                    }
+                }
+            });
+
+            // VOC Summary Chart
+            const vocCtx = document.getElementById('vocChart').getContext('2d');
+            new Chart(vocCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['세련된 패키지', '쓴맛 완화', '가격 인상 체감', '박스 개봉 불편'],
+                    datasets: [{
+                        label: '리뷰 언급 빈도',
+                        data: [92, 85, 45, 38],
+                        backgroundColor: ['#1a237e', '#1a237e', '#f57c00', '#f57c00'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { display: false },
+                        y: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
+                    }
+                }
+            });
+        };
+    </script>
+</body>
+</html>
