@@ -29,9 +29,6 @@ st.markdown("""
         border-left: 6px solid #c62828;
         transition: transform 0.2s;
     }
-    div[data-testid="stMetric"]:hover {
-        transform: translateY(-5px);
-    }
     
     /* Header Styling */
     .report-header {
@@ -46,14 +43,9 @@ st.markdown("""
     .section-title {
         border-left: 5px solid #c62828;
         padding-left: 15px;
-        margin: 30px 0 20px 0;
+        margin: 30px 0 15px 0;
         font-weight: 700;
         color: #2c3e50;
-    }
-    
-    /* Sidebar Styling */
-    .stSidebar {
-        background-color: #ffffff;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -67,19 +59,17 @@ sheet_url = st.sidebar.text_input(
     help="분석할 구글 시트의 URL을 입력하세요."
 )
 
-# 데이터 새로고침 버튼
 if st.sidebar.button("🔄 데이터 강제 새로고침"):
     st.cache_data.clear()
     st.rerun()
-
-st.sidebar.divider()
-st.sidebar.info("💡 **팁**: 구글 시트에서 수치를 변경한 후 위 버튼을 누르면 실시간으로 반영됩니다.")
 
 @st.cache_data(ttl=600)
 def load_data(url):
     try:
         conn = st.connection("gsheets", type=GSheetsConnection)
         data = conn.read(spreadsheet=url)
+        # 컬럼명 앞뒤 공백 제거 (KeyError 방지 핵심)
+        data.columns = [str(c).strip() for c in data.columns]
         return data
     except Exception as e:
         return e
@@ -91,13 +81,19 @@ if sheet_url:
     result = load_data(sheet_url)
     if isinstance(result, Exception):
         st.error(f"⚠️ 데이터 연결 실패: {result}")
-        st.info("💡 시트의 [공유] 설정이 '링크가 있는 모든 사용자(뷰어)'로 되어 있는지 확인해 주세요.")
     else:
         df = result
-        if not df.empty:
+        # 필수 컬럼 존재 여부 확인
+        required_cols = ['Type', 'Name', 'Value']
+        missing_cols = [col for col in required_cols if col not in df.columns]
+        
+        if not missing_cols:
             data_load_success = True
-else:
-    st.warning("⚠️ 왼쪽 사이드바에 구글 시트 URL을 입력해주세요.")
+        else:
+            st.error(f"⚠️ 시트 형식 오류: '{', '.join(missing_cols)}' 컬럼을 찾을 수 없습니다.")
+            st.info("💡 구글 시트의 첫 번째 줄(헤더)에 **Type, Name, Value, Delta, Content, Sentiment** 컬럼이 있는지 확인해주세요.")
+            with st.expander("현재 로드된 컬럼 보기"):
+                st.write(list(df.columns))
 
 st.markdown("""
     <div class="report-header">
@@ -107,39 +103,31 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 if data_load_success:
-    # KPI Section
+    # 1. KPI 섹션
     kpi_df = df[df['Type'] == 'KPI']
-    
     col1, col2, col3 = st.columns(3)
     
-    def get_kpi_value(name, col_name='Value'):
+    def get_val(name, target_col='Value'):
         try:
-            return kpi_df[kpi_df['Name'] == name][col_name].values[0]
+            val = kpi_df[kpi_df['Name'] == name][target_col].values[0]
+            return val
         except:
             return None
 
     with col1:
-        val = get_kpi_value('수도권성장')
-        delta = get_kpi_value('수도권성장', 'Delta')
-        if val is not None:
-            st.metric(label="📈 수도권 판매 성장률", value=f"+{val}%", delta=delta)
-        else:
-            st.info("수도권성장 데이터 없음")
+        val = get_val('수도권성장')
+        delta = get_val('수도권성장', 'Delta')
+        st.metric(label="📈 수도권 판매 성장률", value=f"+{val}%" if val else "N/A", delta=delta)
 
     with col2:
-        val = get_kpi_value('2030비중')
-        if val is not None:
-            st.metric(label="👥 2030 구매 고객 비중", value=f"{val}%", delta="목표치 달성 중")
-        else:
-            st.info("2030비중 데이터 없음")
+        val = get_val('2030비중')
+        st.metric(label="👥 2030 구매 고객 비중", value=f"{val}%" if val else "N/A", delta="핵심 타겟")
 
     with col3:
-        val = get_kpi_value('아웃도어')
-        if val is not None:
-            st.metric(label="🏔️ 아웃도어 키워드 언급", value=f"+{val}%", delta="급증세", delta_color="normal")
-        else:
-            st.info("아웃도어 데이터 없음")
+        val = get_val('아웃도어')
+        st.metric(label="🏔️ 아웃도어 키워드 언급", value=f"+{val}%" if val else "N/A", delta="급증세")
 
+    # 2. 차트 섹션
     st.markdown("<br>", unsafe_allow_html=True)
     row2_left, row2_right = st.columns(2)
     
@@ -147,62 +135,29 @@ if data_load_success:
         st.markdown('<h3 class="section-title">📍 지역별 판매 현황 (YoY)</h3>', unsafe_allow_html=True)
         region_df = df[df['Type'] == 'Region']
         if not region_df.empty:
-            fig_sales = px.bar(
-                region_df, x='Name', y='Value',
-                color='Value',
-                color_continuous_scale=['#ffcdd2', '#c62828'],
-                labels={'Value': '성장률(%)', 'Name': '지역'}
-            )
-            fig_sales.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                height=400,
-                xaxis_title="",
-                yaxis_title="성장률 (%)"
-            )
+            fig_sales = px.bar(region_df, x='Name', y='Value', color='Value',
+                             color_continuous_scale=['#ffcdd2', '#c62828'])
+            fig_sales.update_layout(plot_bgcolor='rgba(0,0,0,0)', height=380)
             st.plotly_chart(fig_sales, use_container_width=True)
-        else:
-            st.info("지역별 데이터를 찾을 수 없습니다.")
             
     with row2_right:
         st.markdown('<h3 class="section-title">📊 연령대별 고객 분포</h3>', unsafe_allow_html=True)
         age_df = df[df['Type'] == 'Age']
         if not age_df.empty:
-            fig_age = px.pie(
-                age_df, values='Value', names='Name',
-                hole=0.6,
-                color_discrete_sequence=['#c62828', '#e0e0e0', '#ff8a80', '#b0bec5']
-            )
-            fig_age.update_layout(
-                height=400,
-                margin=dict(t=20, b=20, l=20, r=20),
-                legend=dict(orientation="h", yanchor="bottom", y=-0.1, xanchor="center", x=0.5)
-            )
+            fig_age = px.pie(age_df, values='Value', names='Name', hole=0.6,
+                           color_discrete_sequence=['#c62828', '#e0e0e0', '#ff8a80', '#b0bec5'])
+            fig_age.update_layout(height=380, margin=dict(t=20, b=20, l=20, r=20))
             st.plotly_chart(fig_age, use_container_width=True)
-        else:
-            st.info("연령대 데이터를 찾을 수 없습니다.")
 
+    # 3. VOC 섹션
     st.markdown('<h3 class="section-title">💬 실시간 고객의 소리 (VOC)</h3>', unsafe_allow_html=True)
     voc_df = df[df['Type'] == 'VOC'].copy()
     if not voc_df.empty:
-        # 데이터프레임 스타일링
-        def color_sentiment(val):
-            color = '#e8f5e9' if val == '긍정' else '#ffebee' if val == '부정' else '#ffffff'
-            return f'background-color: {color}'
+        # 필요한 컬럼만 추출하여 표시
+        display_cols = [c for c in ['Content', 'Sentiment'] if c in voc_df.columns]
+        st.dataframe(voc_df[display_cols], use_container_width=True, hide_index=True)
 
-        display_voc = voc_df[['Content', 'Sentiment']].rename(columns={'Content': '의견 내용', 'Sentiment': '감성 분석'})
-        st.dataframe(
-            display_voc,
-            use_container_width=True,
-            hide_index=True
-        )
-    else:
-        st.write("표시할 VOC 데이터가 없습니다.")
-
-    # 하단 풋터
     st.markdown("---")
     st.caption(f"최근 업데이트: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')} | KGC Marketing Intelligence Team")
-
 else:
-    if sheet_url:
-        st.warning("⚠️ 데이터를 로드했지만 내용이 비어있습니다. 시트의 구성을 확인해주세요.")
+    st.info("💡 데이터 로드를 대기 중이거나 시트 설정이 올바르지 않습니다.")
